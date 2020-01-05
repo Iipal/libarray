@@ -99,7 +99,7 @@ static inline Interface
     Interface   *__out_ptr;
 
     assert((__out_ptr = calloc(1UL, sizeof(*__out_ptr))));
-    IInitialize_fn(__id, __idt, __tStr, __size, __out_ptr);
+    libi_initialize_fn(__id, __idt, __tStr, __size, __out_ptr);
     __out_ptr->__is_allocated = true;
     return __out_ptr;
 }
