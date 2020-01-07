@@ -1,29 +1,30 @@
-# include "libinterface.h"
+# include "libarray.h"
 
 # include <stdio.h>
 
-# define libi___(x, i) _Generic((x)0, float: i->id->f, default: i->id->l)
-
-# define libi_(type, iptr) (type)iptr->id->libi___(type)
-
 int main(void)
 {
-    Interface i;
-    IInitialize(float, 2.0f, &i);
+    // unsigned long   s = __UINT64_MAX__;
+    // unsigned long   *ptr = &s;
+    Array *aptr = ANew(unsigned long, 2UL);
 
-    Interface *iptr = INew(float, 2.4112f);
+    unsigned long   z = 0UL;
+    unsigned long   n;
 
-    size_t  z = ~0UL;
-    float   n;
+    do {
+        printf("[%-19s]: %7zu | [%-3zu]: %-5lu -> ",
+            aptr->tStr, aptr->size, aptr->length(aptr),
+            ArrayGetDataAt(unsigned long, *aptr, z));
 
-    printf("[%zu]: %f\n", iptr->n_el, InterfaceGetData(float, *iptr));
-    while (9 > ++z) {
-        n = z * 1.4f / 13.0f * 10.0f;
-        IAddElement(float, n, iptr);
-        printf("[%zu]: %f\n", iptr->n_el, iptr->id->f);
-    }
-    printf("[%s]: %zu (%zu)\n", iptr->tStr,
-        iptr->length(iptr), iptr->size);
-    IDelete(&i,   NULL);
-    IDelete(iptr, NULL);
+        n = z * 4.4 + 13.0 * 10.0;
+        AAddElement(unsigned long, n, aptr);
+
+        printf("[%-3zu]: %-5lu (%3zu)\n",
+            aptr->length(aptr),
+            ArrayGetDataAt(unsigned long, *aptr, z + 1), z + 1UL);
+    } while (9 > ++z);
+
+    printf("[%-19s]: %zu (%3zu)\n", aptr->tStr,
+        aptr->length(aptr), aptr->size);
+    ADelete(aptr, NULL);
 }
