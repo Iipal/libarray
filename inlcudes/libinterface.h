@@ -48,8 +48,8 @@ libi_validate_type(const char *restrict __tStr, InterfaceDataType __idt)
         libi_data_type_generic(data), #type, sizeof(type), dst_ptr)
 
 static inline void
-libi_initialize_fn(InterfaceData __id,
-                   InterfaceDataType __idt,
+libi_initialize_fn(const InterfaceData __id,
+                   const InterfaceDataType __idt,
                    const char *restrict __tStr,
                    const size_t __size,
                    Interface *restrict __dst)
@@ -57,17 +57,35 @@ libi_initialize_fn(InterfaceData __id,
 
     assert(!(IDTPtr == __idt && NULL == __id.ptr));
     libi_validate_type(__tStr, __idt);
-    *__dst = (Interface) {
-        libi_dup_static_id(__id), strdup(__tStr), __size, __idt, false
-    };
+    __dst->id = realloc(__dst->id, sizeof(InterfaceData) * (__dst->n_el + 1UL));
+    memcpy(__dst->id + __dst->n_el, &__id, sizeof(InterfaceData));
+    if (!__dst->tStr)
+    if (!__dst->length)
+        __dst->length = libi_length;
+        __dst->tStr = strdup(__tStr);
+    __dst->idt = __idt;
+    __dst->n_el++;
+    __dst->size = __dst->n_el * __size;
+}
+
+# define IAddElement(type, data, dst_ptr) \
+    libi_iaddel_fn((InterfaceData)data, #type, sizeof(type), dst_ptr)
+
+static inline void
+libi_iaddel_fn(const InterfaceData __id,
+               const char *restrict __tStr,
+               const size_t __size,
+               Interface *restrict __dst)
+{
+    libi_initialize_fn(__id, __dst->idt, __tStr, __size, __dst);
 }
 
 # define INew(type, data) \
     libi_fn_inew((InterfaceData)data, \
         libi_data_type_generic(data), #type, sizeof(type))
 
-static inline Interface
-*libi_fn_inew(InterfaceData __id,
+static inline Interface*
+libi_fn_inew(InterfaceData __id,
               InterfaceDataType __idt,
               const char *restrict __tStr,
               const size_t __size)

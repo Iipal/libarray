@@ -30,6 +30,8 @@ enum    e_interface_data_type_generic {
     IDTPtr             // void* or anything else
 } __attribute__((packed));
 
+// A-HYLE macros protect system
+# undef libi_data_type_generic
 # define libi_data_type_generic(x) _Generic((x) + 0,            \
     char:               IDTC,   char*:               IDTCPtr,   \
     unsigned char:      IDTUC,  unsigned char*:      IDTUCPtr,  \
@@ -60,7 +62,7 @@ union   u_interface_data_generic
     short               s;   short               *sptr;
     unsigned short      us;  unsigned short      *usptr;
     int                 i;   int                 *iptr;
-    unsigned int        ui;  unsigned int        *iuptr;
+    unsigned int        ui;  unsigned int        *uiptr;
     long                l;   long                *lptr;
     unsigned long       ul;  unsigned long       *ulptr;
     long long           ll;  long long           *llptr;
@@ -71,14 +73,23 @@ union   u_interface_data_generic
     void                *ptr;
 };
 
-// A-HYLE macros protect system
-# undef libi_dup_static_id
-# undef libi_dup_ptr_id
+# undef InterfaceGetData
+# define InterfaceGetData(type, __i) _Generic((type)0,                        \
+    char:               (__i).id->c,   char*:               (__i).id->cptr,   \
+    unsigned char:      (__i).id->uc,  unsigned char*:      (__i).id->ucptr,  \
+    short:              (__i).id->s,   short*:              (__i).id->sptr,   \
+    unsigned short:     (__i).id->us,  unsigned short*:     (__i).id->usptr,  \
+    int:                (__i).id->i,   int*:                (__i).id->iptr,   \
+    unsigned int:       (__i).id->ui,  unsigned int*:       (__i).id->uiptr,  \
+    long:               (__i).id->l,   long*:               (__i).id->lptr,   \
+    unsigned long:      (__i).id->ul,  unsigned long*:      (__i).id->ulptr,  \
+    long long:          (__i).id->ll,  long long*:          (__i).id->llptr,  \
+    unsigned long long: (__i).id->ull, unsigned long long*: (__i).id->ullptr, \
+    double:             (__i).id->d,   double*:             (__i).id->dptr,   \
+    long double:        (__i).id->ld,  long double*:        (__i).id->ldptr,  \
+    float:              (__i).id->f,   float*:              (__i).id->fptr,   \
+    default:            (__i).id->ptr)
 
-# define libi_dup_static_id(x) \
-    (InterfaceData*)memcpy(calloc(1UL, sizeof(x)), &x, sizeof(x))
-# define libi_dup_ptr_id(x) \
-    (InterfaceData*)memcpy(calloc(1UL, sizeof(*x)), x, sizeof(*x))
 
 # endif /* U_INTERACE_DATA_GENERIC */
 
@@ -87,13 +98,23 @@ union   u_interface_data_generic
 
 typedef struct s_interface Interface;
 
+typedef size_t  (*libi_fnptr_length)(const Interface *restrict);
+
 struct s_interface {
     InterfaceData *restrict id;
     char *restrict          tStr;
     size_t                  size;
+    size_t                  n_el;
+    libi_fnptr_length       length;
     InterfaceDataType       idt;
     bool                    __is_allocated;
 } __attribute__((aligned(__BIGGEST_ALIGNMENT__)));
+
+static inline size_t
+libi_length(const Interface *restrict i)
+{
+    return i->n_el;
+}
 
 # endif /* S_INTERFACE */
 
