@@ -4,114 +4,43 @@
 # define _GNU_SOURCE
 
 # define LIBA_INTERNAL
-# include "liba_types.h"
+# include "liba_internal.h"
 # undef LIBA_INTERNAL
 
-# include <stdlib.h>
-# include <stddef.h>
-# include <assert.h>
-# include <string.h>
-# include <strings.h>
-# include <stdbool.h>
-# include <unistd.h>
-# include <stdio.h>
-# include <err.h>
-
-static void
-liba_validate_type(const char *restrict __tStr, ArrayDataType __adt)
-{
-    static char *__valid_types[27] = {
-        "char",               "char*",
-        "unsigned char",      "unsigned char*",
-        "short",              "short*",
-        "unsigned short",     "unsigned short*",
-        "int",                "int*",
-        "unsigned int",       "unsigned int*",
-        "long",               "long*",
-        "unsigned long",      "unsigned long*",
-        "long long",          "long long*",
-        "unsigned long long", "unsigned long long*",
-        "double",             "double*",
-        "long double",        "long double*",
-        "float",              "float*",
-        ""
-    };
-
-    // If passing the pointer data type it's don't needed to processing errno
-    if (!!*__valid_types[__adt] && !!strcmp(__tStr, __valid_types[__adt])) {
-        warnx((!isatty(fileno(stdout))
-            ? "libarray: passing invalid data: '%s' to '%s'"
-            : "\e[35mlibarray\e[39m: passing invalid data: '\e[31m%s\e[39m' to '\e[35m%s\e[39m'"),
-            __valid_types[__adt], __tStr);
-    }
-}
-
+# undef AInitialize
 # define AInitialize(type, data, dst_ptr) \
-    liba_initialize_fn((ArrayData)(data), \
+    liba_initialize_fn((__internalData)(data), \
         liba_get_data_type(data), #type, sizeof(type), dst_ptr)
 
-static inline void
-liba_initialize_fn(const ArrayData __ad,
-                   const ArrayDataType __adt,
-                   const char *restrict __tStr,
-                   const size_t __size,
-                   Array *restrict __dst)
-{
-
-    assert(!(ADT_Ptr == __adt && NULL == __ad.ptr));
-    liba_validate_type(__tStr, __adt);
-    __dst->ad = realloc(__dst->ad, sizeof(ArrayData) * (__dst->n_el + 1UL));
-    memcpy(__dst->ad + __dst->n_el, &__ad, sizeof(ArrayData));
-    if (!__dst->length)
-        __dst->length = liba_length;
-    if (!__dst->tStr)
-        __dst->tStr = strdup(__tStr);
-    __dst->adt = __adt;
-    __dst->size = ++__dst->n_el * __size;
-}
-
+# undef AAddElement
 # define AAddElement(type, data, dst_ptr) \
-    liba_aaddel_fn((ArrayData)(data), #type, sizeof(type), dst_ptr)
+    liba_initialize_fn((__internalData)(data), \
+        (dst_ptr)->_internal._dt, #type, sizeof(type), dst_ptr)
 
-static inline void
-liba_aaddel_fn(const ArrayData __ad,
-               const char *restrict __tStr,
-               const size_t __size,
-               Array *restrict __dst)
-{
-    liba_initialize_fn(__ad, __dst->adt, __tStr, __size, __dst);
-}
-
+# undef ANew
 # define ANew(type, data) \
-    liba_fn_inew((ArrayData)data, \
+    liba_anew_fn((__internalData)data, \
         liba_get_data_type(data), #type, sizeof(type))
 
-static inline Array*
-liba_fn_inew(ArrayData __ad,
-             ArrayDataType __adt,
-             const char *restrict __tStr,
-             const size_t __size)
-{
-    Array   *__out_ptr;
+# undef ArrayGetDataAt
+# define ArrayGetDataAt(type, a, at) _Generic((type)0,                                                  \
+    char:               (a)._internal._d[(at)].c,   char*:               (a)._internal._d[(at)].cptr,   \
+    unsigned char:      (a)._internal._d[(at)].uc,  unsigned char*:      (a)._internal._d[(at)].ucptr,  \
+    short:              (a)._internal._d[(at)].s,   short*:              (a)._internal._d[(at)].sptr,   \
+    unsigned short:     (a)._internal._d[(at)].us,  unsigned short*:     (a)._internal._d[(at)].usptr,  \
+    int:                (a)._internal._d[(at)].i,   int*:                (a)._internal._d[(at)].iptr,   \
+    unsigned int:       (a)._internal._d[(at)].ui,  unsigned int*:       (a)._internal._d[(at)].uiptr,  \
+    long:               (a)._internal._d[(at)].l,   long*:               (a)._internal._d[(at)].lptr,   \
+    unsigned long:      (a)._internal._d[(at)].ul,  unsigned long*:      (a)._internal._d[(at)].ulptr,  \
+    long long:          (a)._internal._d[(at)].ll,  long long*:          (a)._internal._d[(at)].llptr,  \
+    unsigned long long: (a)._internal._d[(at)].ull, unsigned long long*: (a)._internal._d[(at)].ullptr, \
+    double:             (a)._internal._d[(at)].d,   double*:             (a)._internal._d[(at)].dptr,   \
+    long double:        (a)._internal._d[(at)].ld,  long double*:        (a)._internal._d[(at)].ldptr,  \
+    float:              (a)._internal._d[(at)].f,   float*:              (a)._internal._d[(at)].fptr,   \
+    default:            (a)._internal._d[(at)].ptr)
 
-    assert((__out_ptr = calloc(1UL, sizeof(*__out_ptr))));
-    liba_initialize_fn(__ad, __adt, __tStr, __size, __out_ptr);
-    __out_ptr->__is_allocated = true;
-    return __out_ptr;
-}
-
-static inline void
-ADelete(Array *restrict __a, void (*__callback_freeing_ptr)(void*,size_t)) {
-    if (!!__a) {
-        if (!!__a->ad) {
-            if (ADT_Ptr == __a->adt && !!__callback_freeing_ptr)
-                __callback_freeing_ptr(__a->ad->ptr, __a->size);
-            free(__a->ad);
-        }
-        free(__a->tStr);
-        if (!!__a->__is_allocated)
-            free(__a);
-    }
-}
+static inline void ADelete(Array *restrict _a,
+    void (*_callback_freeing_ptr)(void*,size_t))
+        __attribute__((alias("liba_adelete_fn")));
 
 #endif /* LIBARRAY_H */
