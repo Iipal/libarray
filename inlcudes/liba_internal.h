@@ -111,12 +111,12 @@ union u_data
 
 # endif /* U_DATA */
 
-# ifndef S_INTERNAL_DATA
-#  define S_INTERNAL_DATA
+# ifndef S_INTERNAL_ARRAY
+#  define S_INTERNAL_ARRAY
 
-typedef struct s_internal_data _internalArray;
+typedef struct s_internal_array _internalArray;
 
-struct s_internal_data
+struct s_internal_array
 {
     __internalData *restrict    _d;
     char *restrict              _tStr;
@@ -128,7 +128,7 @@ struct s_internal_data
     char                        __dummy[5] __attribute__((unused));
 } __attribute__((aligned(__BIGGEST_ALIGNMENT__)));
 
-# endif /* S_INTERNAL_DATA */
+# endif /* S_INTERNAL_ARRAY */
 
 # ifndef S_ARRAY
 #  define S_ARRAY
@@ -148,6 +148,7 @@ struct s_array
 static size_t
 liba_length_fn(const Array *restrict a)
 {
+    sizeof(__)
     return a->_internal._nEl;
 }
 
