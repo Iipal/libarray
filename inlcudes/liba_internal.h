@@ -114,7 +114,7 @@ union u_data
 # ifndef S_INTERNAL_ARRAY
 #  define S_INTERNAL_ARRAY
 
-typedef struct s_internal_array _internalArray;
+typedef struct s_internal_array __internalArray;
 
 struct s_internal_array
 {
@@ -140,7 +140,7 @@ typedef size_t (*liba_fnptr_size)(const Array *restrict);
 
 struct s_array
 {
-    _internalArray     _internal;
+    __internalArray     _internal;
     liba_fnptr_length   length;
     liba_fnptr_size     size;
 } __attribute__((aligned(__BIGGEST_ALIGNMENT__)));
@@ -148,7 +148,6 @@ struct s_array
 static size_t
 liba_length_fn(const Array *restrict a)
 {
-    sizeof(__)
     return a->_internal._nEl;
 }
 
@@ -165,7 +164,7 @@ liba_initialize_fn(const __internalData _d,
                    const size_t _size,
                    Array *restrict _dst)
 {
-    _internalArray *restrict __iptr = &_dst->_internal;
+    __internalArray *restrict __iptr = &_dst->_internal;
 
     assert(!(__TypePtr == _dt && NULL == _d.ptr));
     liba_validate_type(_tStr, _dt);
@@ -201,7 +200,7 @@ liba_anew_fn(__internalData _d,
 static inline void
 liba_adelete_fn(Array *restrict _a, void (*_callback_freeing_ptr)(void*,size_t))
 {
-    _internalArray *restrict _iptr;
+    __internalArray *restrict _iptr;
 
     if (!!_a) {
         _iptr = &_a->_internal;
