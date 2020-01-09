@@ -15,8 +15,8 @@
 # include <stdio.h>
 # include <err.h>
 
-# ifndef E_ARRAY_DATA_TYPE
-#  define E_ARRAY_DATA_TYPE
+# ifndef E_DATA_TYPE
+#  define E_DATA_TYPE
 
 typedef enum e_data_type __internalDataType;
 
@@ -84,10 +84,10 @@ liba_validate_type(const char *restrict _tStr, __internalDataType _dt)
     }
 }
 
-# endif /* E_ARRAY_DATA_TYPE */
+# endif /* E_DATA_TYPE */
 
-# ifndef U_ARRAY_DATA
-#  define U_ARRAY_DATA
+# ifndef U_DATA
+#  define U_DATA
 
 typedef union u_data __internalData;
 
@@ -109,7 +109,7 @@ union u_data
     void                *ptr;
 };
 
-# endif /* U_ARRAY_DATA */
+# endif /* U_DATA */
 
 # ifndef S_INTERNAL_DATA
 #  define S_INTERNAL_DATA
