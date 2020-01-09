@@ -19,11 +19,11 @@
 
 # undef ANew
 # define ANew(type, data) \
-    liba_anew_fn((__internalData)data, \
+    liba_anew_fn((__internalData)(data), \
         liba_get_data_type(data), #type, sizeof(type))
 
-# undef ArrayGetDataAt
-# define ArrayGetDataAt(type, a, at) _Generic((type)0,                                                  \
+# undef ArrayGetElementAt
+# define ArrayGetElementAt(type, a, at) ((type)_Generic((type)0,                                        \
     char:               (a)._internal._d[(at)].c,   char*:               (a)._internal._d[(at)].cptr,   \
     unsigned char:      (a)._internal._d[(at)].uc,  unsigned char*:      (a)._internal._d[(at)].ucptr,  \
     short:              (a)._internal._d[(at)].s,   short*:              (a)._internal._d[(at)].sptr,   \
@@ -37,7 +37,10 @@
     double:             (a)._internal._d[(at)].d,   double*:             (a)._internal._d[(at)].dptr,   \
     long double:        (a)._internal._d[(at)].ld,  long double*:        (a)._internal._d[(at)].ldptr,  \
     float:              (a)._internal._d[(at)].f,   float*:              (a)._internal._d[(at)].fptr,   \
-    default:            (a)._internal._d[(at)].ptr)
+    default:            (a)._internal._d[(at)].ptr))
+
+# undef ArrayGetDataTypeName
+# define ArrayGetDataTypeName(a) ((a)._internal._tStr)
 
 static inline void ADelete(Array *restrict _a,
     void (*_callback_freeing_ptr)(void*,size_t))

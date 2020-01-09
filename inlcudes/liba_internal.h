@@ -124,7 +124,8 @@ struct s_internal_data
     size_t                      _nEl;
     __internalDataType          _dt;
     bool                        _is_allocated;
-    char                        __dummy[6] __attribute__((unused));
+    bool                        _is_initialized;
+    char                        __dummy[5] __attribute__((unused));
 } __attribute__((aligned(__BIGGEST_ALIGNMENT__)));
 
 # endif /* S_INTERNAL_DATA */
@@ -145,13 +146,13 @@ struct s_array
 } __attribute__((aligned(__BIGGEST_ALIGNMENT__)));
 
 static size_t
-liba_length(const Array *restrict a)
+liba_length_fn(const Array *restrict a)
 {
     return a->_internal._nEl;
 }
 
 static size_t
-liba_size(const Array *restrict a)
+liba_size_fn(const Array *restrict a)
 {
     return a->_internal._nEl * a->_internal._tSize;
 }
@@ -170,14 +171,14 @@ liba_initialize_fn(const __internalData _d,
     __iptr->_d = realloc(__iptr->_d,
         sizeof(__internalData) * (__iptr->_nEl + 1UL));
     *(__iptr->_d + __iptr->_nEl) = _d;
-    if (!_dst->length)
-        _dst->length = liba_length;
-    if (!_dst->size)
-        _dst->size = liba_size;
-    if (!__iptr->_tStr)
+    if (!__iptr->_is_initialized) {
+        _dst->size = liba_size_fn;
+        _dst->length = liba_length_fn;
+        __iptr->_dt = _dt;
+        __iptr->_tSize = _size;
         __iptr->_tStr = strdup(_tStr);
-    __iptr->_tSize = _size;
-    __iptr->_dt = _dt;
+        __iptr->_is_initialized = true;
+    }
     __iptr->_nEl++;
 }
 
